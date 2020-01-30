@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+<head>
+	<title>My Budgeting Site</title>
+</head>
+<body>
+	<h1>My Budget</h1>
+	<div data-ng-app="BudgApp" data-ng-controller="BudgControl">
+		<h2>Current balance: <span data-ng-bind="total"></span></h2>
+		<table border="1">
+		<tr>
+				<td><input type="date" data-ng-model="trDate"></td>
+				<td><input type="text" data-ng-model="trDescription"></td>
+				<td><input type="number" data-ng-model="trAmount"></td>
+				<td>
+					<form>
+						<input type="radio" name="trRadio" checked="checked" value="deb" data-ng-model="trRad" />Debit
+						<input type="radio" name="trRadio" value="cred" data-ng-model="trRad" />Credit
+					</form>
+				</td>
+				<td><input type="button" value="+" data-ng-click="addTransaction()"></td>
+		</tr>
+		<tr>
+			<th>Date</th>
+			<th>Description</th>
+			<th>Debit</th>
+			<th>Credit</th>
+		</tr>
+		<tr data-ng-repeat="each in myTransactions">
+			<td data-ng-bind="each.date | date"></td>
+			<td data-ng-bind="each.desc"></td>
+			<td data-ng-bind="each.deb | number" data-ng-click="changeTrType($index)"></td>
+			<td data-ng-bind="each.cred | number" data-ng-click="changeTrType($index)"></td>
+			<td><input type="button" value="Delete" data-ng-click="deleteItem($index)"></td>
+		</tr>
+		</table>
+	</div>
+	<script>
+		var app = angular.module('BudgApp', []);
+		app.controller('BudgControl', function($scope) {
+			$scope.total=0;
+			$scope.myTransactions=[];
+			$scope.addTransaction = function(){
+				if($scope.trRad){
+					if($scope.trRad=="deb"){
+						$scope.myTransactions.push({"date":$scope.trDate,"desc":$scope.trDescription,"deb":$scope.trAmount, "cred":0});
+						$scope.total=$scope.total+$scope.trAmount;
+					}else if($scope.trRad=="cred"){
+						$scope.myTransactions.push({"date":$scope.trDate,"desc":$scope.trDescription,"deb":0,"cred":$scope.trAmount});
+						$scope.total=$scope.total-$scope.trAmount;
+					}
+				}
+			};
+			$scope.changeTrType = function(index){
+				var trEdit = $scope.myTransactions[index];
+				if(trEdit["deb"]==0){
+					$scope.total=$scope.total+2*trEdit["cred"];
+					trEdit["deb"]=trEdit["cred"];
+					trEdit["cred"]=0;
+				}else{
+					$scope.total=$scope.total-2*trEdit["deb"];
+					trEdit["cred"]=trEdit["deb"];
+					trEdit["deb"]=0;
+				}
+				// for(var i=0;i<$scope.myTransactions.length;i++){
+				// 	alert(index+"\n"+$scope.myTransactions[i]["date"]+"\n"+$scope.myTransactions[i]["desc"]);
+				// }
+			};
+			$scope.deleteItem = function(index){
+				if($scope.myTransactions[index]["deb"]==0){
+					$scope.total=$scope.total+$scope.myTransactions[index]["cred"]
+					$scope.myTransactions[index]["cred"]=0;
+				}else{
+					$scope.total=$scope.total-$scope.myTransactions[index]["deb"]
+					$scope.myTransactions[index]["deb"]=0
+				}
+				$scope.myTransactions.splice(index,1);
+			};
+			app.filter("noPrintZero", function(){
+				return function(number){
+					alert(number);
+					if(number==0||number=="0"){
+						return "";
+					}else{
+						return number;
+					}
+				}
+			});
+		});
+	</script>
+</body>
+</html>
